@@ -24,7 +24,7 @@ type DemoConfig struct {
 func TestDo(t *testing.T) {
 	client := &FakeClient{}
 	conf := &DemoConfig{}
-	if err := oap.Do(conf, client); err != nil {
+	if err := oap.Decode(conf, client); err != nil {
 		panic(err)
 	}
 	if conf.Foo != "bar" {

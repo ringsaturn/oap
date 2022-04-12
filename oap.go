@@ -8,7 +8,7 @@ type MinimalClient interface {
 	GetValue(string) string
 }
 
-func Do(ptr interface{}, client MinimalClient) error {
+func Decode(ptr interface{}, client MinimalClient) error {
 
 	v := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < v.NumField(); i++ {
