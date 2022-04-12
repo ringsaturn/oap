@@ -3,18 +3,9 @@ package oap_test
 import (
 	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/ringsaturn/oap"
 )
-
-type FakeClient struct {
-}
-
-func (c *FakeClient) GetString(key string) string {
-	if key == "foo" {
-		return "bar"
-	}
-	return key
-}
 
 type DemoConfig struct {
 	Foo       string `apollo:"foo"`
@@ -25,7 +16,12 @@ type DemoConfig struct {
 }
 
 func TestDo(t *testing.T) {
-	client := &FakeClient{}
+	ctrl := gomock.NewController(t)
+	client := NewMockClient(ctrl)
+
+	client.EXPECT().GetString(gomock.Eq("foo")).Return("bar")
+	client.EXPECT().GetString(gomock.Eq("hello")).Return("hello")
+
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client); err != nil {
 		panic(err)

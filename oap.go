@@ -2,14 +2,11 @@ package oap
 
 import (
 	"reflect"
+
+	"github.com/philchia/agollo/v4"
 )
 
-type MinimalClient interface {
-	GetString(string) string
-}
-
-func Decode(ptr interface{}, client MinimalClient) error {
-
+func Decode(ptr interface{}, client agollo.Client, opts ...agollo.OpOption) error {
 	v := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		structField := v.Type().Field(i)
@@ -19,7 +16,8 @@ func Decode(ptr interface{}, client MinimalClient) error {
 		}
 		tag := structField.Tag
 		apolloKey := tag.Get("apollo")
-		v.FieldByName(structField.Name).Set(reflect.ValueOf(client.GetString(apolloKey)).Convert(structField.Type))
+		confV := client.GetString(apolloKey, opts...)
+		v.FieldByName(structField.Name).Set(reflect.ValueOf(confV).Convert(structField.Type))
 	}
 	return nil
 }
