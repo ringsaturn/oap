@@ -17,8 +17,11 @@ func (c *FakeClient) GetValue(key string) string {
 }
 
 type DemoConfig struct {
-	Foo   string `apollo:"foo"`
-	Hello string `apollo:"hello"`
+	Foo       string `apollo:"foo"`
+	Hello     string `apollo:"hello"`
+	Substruct struct {
+		X string `apollo:"x"`
+	}
 }
 
 func TestDo(t *testing.T) {
