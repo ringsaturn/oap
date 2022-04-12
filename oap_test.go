@@ -9,7 +9,7 @@ import (
 type FakeClient struct {
 }
 
-func (c *FakeClient) GetValue(key string) string {
+func (c *FakeClient) GetString(key string) string {
 	if key == "foo" {
 		return "bar"
 	}
