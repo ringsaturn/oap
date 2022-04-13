@@ -8,7 +8,7 @@ import (
 	"github.com/philchia/agollo/v4"
 )
 
-func Decode(ptr interface{}, client agollo.Client, opts ...agollo.OpOption) error {
+func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.OpOption) error {
 	v := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		structField := v.Type().Field(i)
@@ -18,7 +18,12 @@ func Decode(ptr interface{}, client agollo.Client, opts ...agollo.OpOption) erro
 			// Ignore empty key
 			continue
 		}
-		confV := client.GetString(apolloKey, opts...)
+		var confV string
+		if opts, ok := keyOpts[apolloKey]; ok {
+			confV = client.GetString(apolloKey, opts...)
+		} else {
+			confV = client.GetString(apolloKey)
+		}
 		if confV == "" {
 			continue
 		}
