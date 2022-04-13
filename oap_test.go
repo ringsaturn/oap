@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
+	agollo "github.com/philchia/agollo/v4"
 	"github.com/ringsaturn/oap"
 )
 
@@ -29,7 +30,7 @@ func TestDo(t *testing.T) {
 	client.EXPECT().GetString(gomock.Eq("boolField")).Return("true")
 
 	conf := &DemoConfig{}
-	if err := oap.Decode(conf, client); err != nil {
+	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
 		panic(err)
 	}
 	if conf.Foo != "bar" {
