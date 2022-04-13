@@ -3,10 +3,7 @@
 Support types:
 
 - [x] String
-
-TODO:
-
-- [ ] Int
-- [ ] Bool
-- [ ] Float32
-- [ ] Float64
+- [x] Int
+- [x] Bool
+- [x] Float32
+- [x] Float64
