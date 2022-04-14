@@ -61,7 +61,7 @@ func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.O
 		case reflect.Float64:
 			var filedV float64
 
-			float64V, err := strconv.ParseFloat(confV, 32)
+			float64V, err := strconv.ParseFloat(confV, 64)
 			if err != nil {
 				return err
 			}
