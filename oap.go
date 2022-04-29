@@ -1,11 +1,13 @@
 package oap
 
 import (
+	"encoding/json"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/philchia/agollo/v4"
+	"gopkg.in/yaml.v3"
 )
 
 func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.OpOption) error {
@@ -13,11 +15,14 @@ func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.O
 	for i := 0; i < v.NumField(); i++ {
 		structField := v.Type().Field(i)
 		tag := structField.Tag
-		apolloKey := tag.Get("apollo")
-		if apolloKey == "" {
+		apolloRawKey := tag.Get("apollo")
+		if apolloRawKey == "" {
 			// Ignore empty key
 			continue
 		}
+		apolloKeyParts := strings.Split(apolloRawKey, ",")
+		apolloKey := apolloKeyParts[0]
+
 		var confV string
 		if opts, ok := keyOpts[apolloKey]; ok {
 			confV = client.GetString(apolloKey, opts...)
@@ -68,8 +73,30 @@ func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.O
 			filedV = float64V
 
 			valueToSet = reflect.ValueOf(filedV)
+		case reflect.Struct:
+			var unmarshallType string
+			if len(apolloKeyParts) == 2 {
+				unmarshallType = apolloKeyParts[1]
+			}
+			switch unmarshallType {
+			case "json":
+				v := reflect.New(structField.Type)
+				newP := v.Interface()
+				if err := json.Unmarshal([]byte(confV), newP); err != nil {
+					return err
+				}
+				valueToSet = reflect.Indirect(reflect.ValueOf(newP))
+			case "yaml":
+				v := reflect.New(structField.Type)
+				newP := v.Interface()
+				if err := yaml.Unmarshal([]byte(confV), newP); err != nil {
+					return err
+				}
+				valueToSet = reflect.Indirect(reflect.ValueOf(newP))
+			default:
+				continue
+			}
 		default:
-			// Not support types
 			continue
 		}
 		v.FieldByName(structField.Name).Set(valueToSet.Convert(structField.Type))

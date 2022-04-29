@@ -7,3 +7,4 @@ Support types:
 - [x] Bool
 - [x] Float32
 - [x] Float64
+- [x] Struct from JSON or YAML
