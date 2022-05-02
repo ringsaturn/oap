@@ -12,14 +12,15 @@ import (
 
 type UnmarshalFunc = func([]byte, interface{}) error
 
-var registry = map[string]UnmarshalFunc{}
+var registry = make(map[string]UnmarshalFunc)
 
 func init() {
 	registry["json"] = json.Unmarshal
 	registry["yaml"] = yaml.Unmarshal
 }
 
-// You can use custom unmarshal
+// You can use custom unmarshal for strcut type filed.
+// Predfined JSON&YAML.
 func RegisterNewUnmarshalFunc(name string, f UnmarshalFunc) {
 	registry[name] = f
 }
