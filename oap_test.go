@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
-	agollo "github.com/philchia/agollo/v4"
+	"github.com/philchia/agollo/v4"
 	"github.com/ringsaturn/oap"
+	"github.com/stretchr/testify/assert"
 )
 
 type DemoConfig struct {
@@ -46,37 +47,15 @@ func TestDo(t *testing.T) {
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
 		panic(err)
 	}
-	if conf.Foo != "bar" {
-		t.Fatalf("Foo should be bar but got %v", conf.Foo)
-	}
-	if conf.Hello != "hello" {
-		t.Fatalf("Hello should be hello but got %v", conf.Hello)
-	}
-	if conf.Float32Field != 3.14 {
-		t.Fatalf("Float32Field should be `3.14` but got %v", conf.Float32Field)
-	}
+	assert.Equal(t, "bar", conf.Foo)
+	assert.Equal(t, "hello", conf.Hello)
+	assert.Equal(t, float32(3.14), conf.Float32Field)
+	assert.InDelta(t, float64(3.14159265), conf.Float64Field, 0.0000001)
+	assert.Equal(t, true, conf.BoolField)
 
-	if conf.Float64Field != 3.14159265 {
-		t.Fatalf("Float64Field should be `3.14159265` but got %v", conf.Float64Field)
-	}
+	assert.Equal(t, "123", conf.Substruct.X)
 
-	if !conf.BoolField {
-		t.Fatalf("BoolField should be `true` but got %v", conf.BoolField)
-	}
-
-	if &conf.Substruct == nil {
-		t.Fatal("nil")
-	}
-	if conf.Substruct.X != "123" {
-		t.Fatalf("Substruct.X should be `123` but got %v", conf.Substruct.X)
-	}
-
-	if conf.SubstructFromYAML.X != "fffff" {
-		t.Fatalf("SubstructFromYAML.X should be `'fffff'` but got %v", conf.SubstructFromYAML.X)
-	}
-
-	if conf.SubstructFromYAML.Y != 12313212 {
-		t.Fatalf("SubstructFromYAML.Y should be `'12313212'` but got %v", conf.SubstructFromYAML.Y)
-	}
+	assert.Equal(t, "fffff", conf.SubstructFromYAML.X)
+	assert.Equal(t, 12313212, conf.SubstructFromYAML.Y)
 
 }

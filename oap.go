@@ -10,6 +10,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type UnmarshalFunc = func([]byte, interface{}) error
+
+var registry = make(map[string]UnmarshalFunc)
+
+func init() {
+	registry["json"] = json.Unmarshal
+	registry["yaml"] = yaml.Unmarshal
+}
+
+// You can use custom unmarshal for strcut type filed.
+// Predfined JSON&YAML.
+func RegisterNewUnmarshalFunc(name string, f UnmarshalFunc) {
+	registry[name] = f
+}
+
 func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.OpOption) error {
 	v := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < v.NumField(); i++ {
@@ -74,28 +89,20 @@ func Decode(ptr interface{}, client agollo.Client, keyOpts map[string][]agollo.O
 
 			valueToSet = reflect.ValueOf(filedV)
 		case reflect.Struct:
-			var unmarshallType string
+			var unmarshalType string
 			if len(apolloKeyParts) == 2 {
-				unmarshallType = apolloKeyParts[1]
+				unmarshalType = apolloKeyParts[1]
 			}
-			switch unmarshallType {
-			case "json":
-				v := reflect.New(structField.Type)
-				newP := v.Interface()
-				if err := json.Unmarshal([]byte(confV), newP); err != nil {
-					return err
-				}
-				valueToSet = reflect.Indirect(reflect.ValueOf(newP))
-			case "yaml":
-				v := reflect.New(structField.Type)
-				newP := v.Interface()
-				if err := yaml.Unmarshal([]byte(confV), newP); err != nil {
-					return err
-				}
-				valueToSet = reflect.Indirect(reflect.ValueOf(newP))
-			default:
+			unmarshalFunc, ok := registry[unmarshalType]
+			if !ok {
 				continue
 			}
+			v := reflect.New(structField.Type)
+			newP := v.Interface()
+			if err := unmarshalFunc([]byte(confV), newP); err != nil {
+				return err
+			}
+			valueToSet = reflect.Indirect(reflect.ValueOf(newP))
 		default:
 			continue
 		}
