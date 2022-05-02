@@ -13,7 +13,7 @@ type DemoConfig struct {
 	Foo          string  `apollo:"foo"`
 	Hello        string  `apollo:"hello"`
 	Float32Field float32 `apollo:"float32Field"`
-	Float64Field float32 `apollo:"float64Field"`
+	Float64Field float64 `apollo:"float64Field"`
 	BoolField    bool    `apollo:"boolField"`
 	Substruct    struct {
 		X string `json:"x"`
