@@ -1,6 +1,7 @@
 package oap_test
 
 import (
+	"net/url"
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
@@ -24,8 +25,9 @@ type DemoConfig struct {
 		Y int    `yaml:"y"`
 	} `apollo:"substructFromYAML,yaml"`
 	SubstructWithInnerKeyDef struct {
-		X string `apollo:"SubstructWithInnerKeyDef.X"`
-		Y string `apollo:"SubstructWithInnerKeyDef.Y"`
+		X        string   `apollo:"SubstructWithInnerKeyDef.X"`
+		Y        string   `apollo:"SubstructWithInnerKeyDef.Y"`
+		URLField *url.URL `apollo:"SubstructWithInnerKeyDef.URL,url"`
 	}
 }
 
@@ -48,6 +50,17 @@ func TestDo(t *testing.T) {
 	client.EXPECT().GetString(gomock.Eq("substructFromYAML")).Return(yamlText).MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.X")).Return("balabala").MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.Y")).Return("habahaba").MaxTimes(1)
+	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.URL")).Return("http://example.com").MaxTimes(1)
+
+	oap.SetUnmarshalFunc("url", func(b []byte, i interface{}) error {
+		u, err := url.Parse(string(b))
+		if err != nil {
+			return err
+		}
+		urlV := i.(**url.URL)
+		*urlV = &*u
+		return nil
+	})
 
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
@@ -66,4 +79,5 @@ func TestDo(t *testing.T) {
 
 	assert.Equal(t, "balabala", conf.SubstructWithInnerKeyDef.X)
 	assert.Equal(t, "habahaba", conf.SubstructWithInnerKeyDef.Y)
+	assert.Equal(t, "example.com", conf.SubstructWithInnerKeyDef.URLField.Host)
 }

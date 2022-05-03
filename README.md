@@ -26,14 +26,26 @@ type DemoConfig struct {
 		Y int    `yaml:"y"`
 	} `apollo:"substructFromYAML,yaml"`
 	SubstructWithInnerKeyDef struct {
-		X string `apollo:"SubstructWithInnerKeyDef.X"`
-		Y string `apollo:"SubstructWithInnerKeyDef.Y"`
+		X        string   `apollo:"SubstructWithInnerKeyDef.X"`
+		Y        string   `apollo:"SubstructWithInnerKeyDef.Y"`
+		URLField *url.URL `apollo:"SubstructWithInnerKeyDef.URL,url"`  // `url` is unmarshall type name
 	}
 }
 
 func main(){
 	// init your apollo client here
 	// ...
+
+	// add custom unmarshall
+	oap.SetUnmarshalFunc("url", func(b []byte, i interface{}) error {
+		u, err := url.Parse(string(b))
+		if err != nil {
+			return err
+		}
+		urlV := i.(**url.URL)
+		*urlV = &*u
+		return nil
+	})
 
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {

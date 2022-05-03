@@ -52,6 +52,7 @@ func init() {
 	registryForKindHandler[reflect.Float32] = float32Handler
 	registryForKindHandler[reflect.Float64] = float64Handler
 	registryForKindHandler[reflect.Struct] = structHandler
+	registryForKindHandler[reflect.Ptr] = structHandler
 }
 
 func boolHandler(rawtag string, expectFieldType reflect.Type, client agollo.Client, opts ...agollo.OpOption) (*reflect.Value, error) {
