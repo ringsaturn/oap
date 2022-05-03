@@ -23,6 +23,10 @@ type DemoConfig struct {
 		X string `yaml:"x"`
 		Y int    `yaml:"y"`
 	} `apollo:"substructFromYAML,yaml"`
+	SubstructWithInnerKeyDef struct {
+		X string `apollo:"SubstructWithInnerKeyDef.X"`
+		Y string `apollo:"SubstructWithInnerKeyDef.Y"`
+	}
 }
 
 var testJSONText string = `{"x": "123", "y": 0}`
@@ -42,6 +46,8 @@ func TestDo(t *testing.T) {
 	client.EXPECT().GetString(gomock.Eq("boolField")).Return("true").MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("substruct")).Return(testJSONText).MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("substructFromYAML")).Return(yamlText).MaxTimes(1)
+	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.X")).Return("balabala").MaxTimes(1)
+	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.Y")).Return("habahaba").MaxTimes(1)
 
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
@@ -58,4 +64,6 @@ func TestDo(t *testing.T) {
 	assert.Equal(t, "fffff", conf.SubstructFromYAML.X)
 	assert.Equal(t, 12313212, conf.SubstructFromYAML.Y)
 
+	assert.Equal(t, "balabala", conf.SubstructWithInnerKeyDef.X)
+	assert.Equal(t, "habahaba", conf.SubstructWithInnerKeyDef.Y)
 }

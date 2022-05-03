@@ -25,6 +25,10 @@ type DemoConfig struct {
 		X string `yaml:"x"`
 		Y int    `yaml:"y"`
 	} `apollo:"substructFromYAML,yaml"`
+	SubstructWithInnerKeyDef struct {
+		X string `apollo:"SubstructWithInnerKeyDef.X"`
+		Y string `apollo:"SubstructWithInnerKeyDef.Y"`
+	}
 }
 
 func main(){
@@ -46,3 +50,4 @@ Support types:
 - [x] Float32
 - [x] Float64
 - [x] Struct from JSON or YAML
+- [x] Struct with inner key def
