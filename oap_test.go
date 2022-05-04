@@ -3,7 +3,9 @@ package oap_test
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"testing"
+	"time"
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/philchia/agollo/v4"
@@ -18,6 +20,18 @@ func unmarshalForURL(b []byte, i interface{}) error {
 	}
 	urlV := i.(**url.URL)
 	*urlV = &*u
+	return nil
+}
+
+func unmarshalForTimeTime(b []byte, i interface{}) error {
+	intV, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return err
+	}
+	t := time.Unix(intV, 0)
+
+	timeV := i.(*time.Time)
+	*timeV = t
 	return nil
 }
 
@@ -55,6 +69,8 @@ type DemoConfig struct {
 		Y        string   `apollo:"SubstructWithInnerKeyDef.Y"`
 		URLField *url.URL `apollo:"SubstructWithInnerKeyDef.URL,url"`
 	}
+	TimeTimeField time.Time `apollo:"TimeTimeField,time.Time"`
+	// TimeDuratonField time.Duration `apollo:"TimeDuratonField,time.Duration"`
 }
 
 var testJSONText string = `{"x": "123", "y": 0}`
@@ -77,8 +93,14 @@ func TestDo(t *testing.T) {
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.X")).Return("balabala").MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.Y")).Return("habahaba").MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.URL")).Return("http://example.com").MaxTimes(1)
+	client.EXPECT().GetString(gomock.Eq("TimeTimeField")).Return("1651673967").MaxTimes(1)
 
 	oap.SetUnmarshalFunc("url", unmarshalForURL)
+	oap.SetUnmarshalFunc("time.Time", unmarshalForTimeTime)
+
+	// TODO(ringsaturn): support time.Duration.
+	// client.EXPECT().GetString(gomock.Eq("TimeDuratonField")).Return("3600").MaxTimes(1).MinTimes(1)
+	// oap.SetUnmarshalFunc("time.Duration", unmarshalForTimeDuration)
 
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
@@ -98,4 +120,8 @@ func TestDo(t *testing.T) {
 	assert.Equal(t, "balabala", conf.SubstructWithInnerKeyDef.X)
 	assert.Equal(t, "habahaba", conf.SubstructWithInnerKeyDef.Y)
 	assert.Equal(t, "example.com", conf.SubstructWithInnerKeyDef.URLField.Host)
+
+	assert.Equal(t, int64(1651673967), conf.TimeTimeField.Unix())
+	// log.Println("conf.TimeDuratonField", conf.TimeDuratonField)
+	// assert.Equal(t, int64(3600), conf.TimeDuratonField.Seconds())
 }
