@@ -22,16 +22,19 @@ var (
 )
 
 // You can use custom unmarshal for strcut type filed.
-// Predfined JSON&YAML.
+// Support JSON&YAML by default.
+// You can add any custom type or overwrite oap's built-in method for JSON or YAML.
 func SetUnmarshalFunc(name string, f UnmarshalFunc) {
 	registryForUnmarshal[name] = f
 }
 
 // You can add your custom process func to relect.Kind type, or support oap not support type.
+// For example, support Uint/Uint8/Uint16/Uint32/Uint64 ...
 func SetKindHanlderFunc(kind reflect.Kind, f KindHandler) {
 	registryForKindHandler[kind] = f
 }
 
+// You can access oap's internal registry for unmarshall.
 func GetUnmarshalFunc(name string) (UnmarshalFunc, bool) {
 	f, ok := registryForUnmarshal[name]
 	return f, ok

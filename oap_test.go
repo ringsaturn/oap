@@ -1,6 +1,7 @@
 package oap_test
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -9,6 +10,31 @@ import (
 	"github.com/ringsaturn/oap"
 	"github.com/stretchr/testify/assert"
 )
+
+func unmarshalForURL(b []byte, i interface{}) error {
+	u, err := url.Parse(string(b))
+	if err != nil {
+		return err
+	}
+	urlV := i.(**url.URL)
+	*urlV = &*u
+	return nil
+}
+
+func ExampleSetUnmarshalFunc() {
+	oap.SetUnmarshalFunc("url", unmarshalForURL)
+
+	f, ok := oap.GetUnmarshalFunc("url")
+	if !ok {
+		panic(fmt.Errorf("not get expect func"))
+	}
+	urlVale := &url.URL{}
+	if err := f([]byte("http://example.com"), &urlVale); err != nil {
+		panic(err)
+	}
+	fmt.Println(urlVale.Host)
+	// Output: example.com
+}
 
 type DemoConfig struct {
 	Foo          string  `apollo:"foo"`
@@ -52,15 +78,7 @@ func TestDo(t *testing.T) {
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.Y")).Return("habahaba").MaxTimes(1)
 	client.EXPECT().GetString(gomock.Eq("SubstructWithInnerKeyDef.URL")).Return("http://example.com").MaxTimes(1)
 
-	oap.SetUnmarshalFunc("url", func(b []byte, i interface{}) error {
-		u, err := url.Parse(string(b))
-		if err != nil {
-			return err
-		}
-		urlV := i.(**url.URL)
-		*urlV = &*u
-		return nil
-	})
+	oap.SetUnmarshalFunc("url", unmarshalForURL)
 
 	conf := &DemoConfig{}
 	if err := oap.Decode(conf, client, make(map[string][]agollo.OpOption)); err != nil {
